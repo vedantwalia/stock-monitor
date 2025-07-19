@@ -1,4 +1,5 @@
 import yfinance as yf
+import pandas as pd
 import streamlit as st
 
 @st.cache_data
@@ -15,4 +16,9 @@ def fetch_stock_data(ticker="RELIANCE.NS", period="7d", interval="1d"):
     pandas.DataFrame: A DataFrame containing the stock data.
     """
     stock_data = yf.download(ticker, period=period, interval=interval)
+    
+    # Flatten multi-index if needed
+    if isinstance(stock_data.columns, pd.MultiIndex):
+        stock_data.columns = stock_data.columns.droplevel(1)
+
     return stock_data
