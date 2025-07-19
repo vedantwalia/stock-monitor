@@ -252,3 +252,4 @@ xmod
 yarg
 yarl
 zipp
+yfinance
