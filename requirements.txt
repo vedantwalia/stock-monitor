@@ -2,6 +2,7 @@ dash
 gunicorn
 mplfinance
 pip-chill
+rapidfuzz
 streamlit
 ta
 yfinance
