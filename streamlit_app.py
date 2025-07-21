@@ -6,6 +6,7 @@ import requests
 import yfinance as yf
 from rapidfuzz import process
 
+# ----------------- Constants -----------------
 TICKER_MAP = {
     "Reliance": "RELIANCE.NS",
     "TCS": "TCS.NS",
@@ -19,7 +20,10 @@ TICKER_MAP = {
     "ITC": "ITC.NS"
 }
 
-@st.cache_data
+API_KEY = st.secrets["API_KEY"]
+
+# ----------------- News Fetcher -----------------
+@st.cache_data(show_spinner=False)
 def fetch_market_news(api_key, query="NSE India"):
     url = f"https://newsapi.org/v2/everything?q={query}&language=en&sortBy=publishedAt&apiKey={api_key}"
     try:
@@ -30,11 +34,12 @@ def fetch_market_news(api_key, query="NSE India"):
         st.error(f"Error fetching news: {e}")
         return []
 
+# ----------------- Streamlit UI -----------------
 st.set_page_config(page_title="📈 Indian Stock Tracker", layout="centered")
-st.title("📈 Indian Stock Tracker")
+st.title(":bar_chart: Indian Stock Tracker")
 
+# -------------- User Input & Matching --------------
 user_input = st.text_input("Enter stock name (e.g., Reliance)", "Reliance")
-
 name_list = list(TICKER_MAP.keys())
 matches = process.extract(user_input, name_list, limit=1, score_cutoff=60)
 
@@ -46,9 +51,11 @@ else:
     st.warning("No matching stock found.")
     ticker = None
 
+# -------------- Stock Options --------------
 period = st.selectbox("Select period", ["1d", "5d", "7d", "1mo", "3mo", "6mo", "1y"])
 interval = st.selectbox("Select interval", ["1m", "5m", "15m", "1h", "1d"])
 
+# -------------- Fetch & Display Stock Data --------------
 if st.button("Fetch") and ticker:
     with st.spinner("Fetching data..."):
         df = fetch_stock_data(ticker, period=period, interval=interval)
@@ -64,26 +71,24 @@ if st.button("Fetch") and ticker:
 
             # Live Price
             live_price = yf.Ticker(ticker).info.get("regularMarketPrice", "N/A")
-            st.metric(label="📈 Live Price", value=live_price)
+            st.metric(label="📈 Live Price", value=f"₹ {live_price}")
 
-
-st.subheader("📰 Latest Market News")
+# -------------- Market News Section --------------
+st.subheader(":newspaper: Latest Market News")
 news = fetch_market_news(NEWSAPI_KEY, query=user_input)
+
 if news:
     with st.container():
-        st.markdown(
-            """
-            <div style='max-height: 300px; overflow-y: auto; padding-right: 10px;'>""",
-            unsafe_allow_html=True
-        )
+        st.markdown("""
+            <div style='max-height: 300px; overflow-y: auto; padding-right: 10px;'>
+        """, unsafe_allow_html=True)
 
-        for article in news[:10]:  # still cap it for performance
+        for article in news[:10]:
             st.markdown(f"**[{article['title']}]({article['url']})**")
             st.caption(article["publishedAt"])
             st.write(article["description"])
             st.markdown("---")
 
         st.markdown("</div>", unsafe_allow_html=True)
-  
 else:
     st.info("No news articles found.")
