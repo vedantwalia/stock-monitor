@@ -20,5 +20,5 @@ def fetch_stock_data(ticker="RELIANCE.NS", period="7d", interval="1d"):
     # Flatten multi-index if needed
     if isinstance(stock_data.columns, pd.MultiIndex):
         stock_data.columns = stock_data.columns.droplevel(1)
-
+    stock_data["SMA_5"] = stock_data["Close"].rolling(window=5).mean()
     return stock_data
