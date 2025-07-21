@@ -5,22 +5,22 @@ from stock_data import fetch_stock_data
 import requests
 import yfinance as yf
 from rapidfuzz import process
-
-# ----------------- Constants -----------------
-TICKER_MAP = {
-    "Reliance": "RELIANCE.NS",
-    "TCS": "TCS.NS",
-    "Infosys": "INFY.NS",
-    "HDFC Bank": "HDFCBANK.NS",
-    "ICICI Bank": "ICICIBANK.NS",
-    "Larsen & Toubro": "LT.NS",
-    "SBI": "SBIN.NS",
-    "Axis Bank": "AXISBANK.NS",
-    "Wipro": "WIPRO.NS",
-    "ITC": "ITC.NS"
-}
+import plotly.graph_objects as go
 
 API_KEY = st.secrets["API_KEY"]
+
+#------------------ Load NSE Tickers -----------------
+@st.cache_data
+def load_nse_ticker_map():
+    df = pd.read_csv("nse_stocks_list.csv")
+    df = df.dropna(subset=["SYMBOL", "NAME OF COMPANY"])
+    ticker_map = {
+        row["NAME OF COMPANY"].strip(): row["SYMBOL"].strip() + ".NS"
+        for _, row in df.iterrows()
+    }
+    return ticker_map
+
+TICKER_MAP = load_nse_ticker_map()
 
 # ----------------- News Fetcher -----------------
 @st.cache_data(show_spinner=False)
@@ -66,7 +66,14 @@ if st.button("Fetch") and ticker:
             st.success("✅ Data loaded successfully")
             st.write(df.tail())
 
-            fig = px.line(df, x=df.index, y="Close", title=f"{ticker} Closing Prices")
+            fig = go.Figure(data=[go.Candlestick(
+                x=df.index,
+                open=df["Open"],
+                high=df["High"],
+                low=df["Low"],
+                close=df["Close"]
+            )])
+            fig.update_layout(title=f"{ticker} Candlestick Chart", xaxis_title="Date", yaxis_title="Price")
             st.plotly_chart(fig, use_container_width=True)
 
             # Live Price
@@ -79,23 +86,23 @@ news = fetch_market_news(API_KEY, query=user_input)
 
 if news:
     with st.container():
-    st.markdown("""
-        <div style='
-            background-color: #1c1c1c;
-            padding: 16px;
-            border-radius: 8px;
-            border: 1px solid #444;
-            max-height: 300px;
-            overflow-y: auto;
-        '>
-    """, unsafe_allow_html=True)
+        st.markdown("""
+            <div style='
+                background-color: #1c1c1c;
+                padding: 16px;
+                border-radius: 8px;
+                border: 1px solid #444;
+                max-height: 300px;
+                overflow-y: auto;
+            '>
+        """, unsafe_allow_html=True)
 
-    for article in news[:10]:
-        st.markdown(f"**[{article['title']}]({article['url']})**")
-        st.caption(article["publishedAt"])
-        st.write(article["description"])
-        st.markdown("---")
+        for article in news[:10]:
+            st.markdown(f"**[{article['title']}]({article['url']})**")
+            st.caption(article["publishedAt"])
+            st.write(article["description"])
+            st.markdown("---")
 
-    st.markdown("</div>", unsafe_allow_html=True)
+        st.markdown("</div>", unsafe_allow_html=True)
 else:
     st.info("No news articles found.")
