@@ -13,7 +13,7 @@ API_KEY = st.secrets["API_KEY"]
 @st.cache_data
 def load_nse_ticker_map():
     df = pd.read_csv("nse_stocks_list.csv")
-    df = df.dropna(subset=["SYMBOL", "NAME OF COMPANY"])
+    df = df.dropna(subset=["Scrip ID", "Scrip Name"])
     ticker_map = {
         row["NAME OF COMPANY"].strip(): row["SYMBOL"].strip() + ".NS"
         for _, row in df.iterrows()
