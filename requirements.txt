@@ -1,5 +1,6 @@
 dash
 gunicorn
+ipykernel
 mplfinance
 pip-chill
 rapidfuzz
