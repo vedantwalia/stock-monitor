@@ -78,6 +78,7 @@ st.subheader(":newspaper: Latest Market News")
 news = fetch_market_news(API_KEY, query=user_input)
 
 if news:
+    with st.container():
     st.markdown("""
         <div style='
             background-color: #1c1c1c;
