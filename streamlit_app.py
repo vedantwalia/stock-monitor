@@ -15,7 +15,7 @@ def load_nse_ticker_map():
     df = pd.read_csv("nse_stocks_list.csv")
     df = df.dropna(subset=["Scrip ID", "Scrip Name"])
     ticker_map = {
-        row["NAME OF COMPANY"].strip(): row["SYMBOL"].strip() + ".NS"
+        row["Scrip Name"].strip(): row["Scrip ID"].strip() + ".NS"
         for _, row in df.iterrows()
     }
     return ticker_map
