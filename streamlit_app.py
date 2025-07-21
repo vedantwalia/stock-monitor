@@ -75,7 +75,7 @@ if st.button("Fetch") and ticker:
 
 # -------------- Market News Section --------------
 st.subheader(":newspaper: Latest Market News")
-news = fetch_market_news(NEWSAPI_KEY, query=user_input)
+news = fetch_market_news(API_KEY, query=user_input)
 
 if news:
     with st.container():
