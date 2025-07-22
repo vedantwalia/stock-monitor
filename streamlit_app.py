@@ -6,9 +6,15 @@ import requests
 import yfinance as yf
 from rapidfuzz import process
 import plotly.graph_objects as go
+import os
+from dotenv import load_dotenv
+load_dotenv()
 
-API_KEY = st.secrets["API_KEY"]
-
+if "API_KEY" in os.environ:
+    API_KEY = os.getenv("API_KEY")
+else:
+    API_KEY = st.secrets["API_KEY"]
+    
 #------------------ Load NSE Tickers -----------------
 @st.cache_data
 def load_nse_ticker_map():
