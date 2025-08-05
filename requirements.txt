@@ -3,8 +3,8 @@ gunicorn
 ipykernel
 mplfinance
 pip-chill
+python-dotenv
 rapidfuzz
 streamlit
 ta
 yfinance
-python-dotenv
