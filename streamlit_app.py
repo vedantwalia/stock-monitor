@@ -5,10 +5,13 @@ from stock_data import fetch_stock_data
 import requests
 import yfinance as yf
 from rapidfuzz import process, fuzz
-import plotly.graph_objects as go
+import plotly.io as pio
 import os
 from dotenv import load_dotenv
+from graph_utils import stock_chart
+
 load_dotenv()
+pio.templates.default = "plotly"  # Use full Plotly styling
 
 if "API_KEY" in os.environ:
     API_KEY = os.getenv("API_KEY")
@@ -47,9 +50,9 @@ st.title(":bar_chart: Indian Stock Tracker")
 # -------------- User Input & Matching --------------
 user_input = st.text_input("Enter stock name (e.g., Reliance)", "Reliance")
 name_list = list(TICKER_MAP.keys())
+
 def find_best_match(query, choices, threshold=70):
     match = process.extractOne(query.upper(), choices, scorer=fuzz.WRatio)
-    
     if match and match[1] >= threshold:
         return match[0]
     return None
@@ -61,6 +64,7 @@ if matched_name:
 else:
     st.warning("No matching stock found.")
     ticker = None
+
 # -------------- Stock Options --------------
 period = st.selectbox("Select period", ["1d", "5d", "7d", "1mo", "3mo", "6mo", "1y"])
 interval = st.selectbox("Select interval", ["1m", "5m", "15m", "1h", "1d"])
@@ -79,47 +83,9 @@ if st.button("Fetch") and ticker:
             st.success("✅ Data loaded successfully")
             st.write(df.tail())
 
-            # 🕯️ Candlestick chart with volume
-            fig = go.Figure()
-
-            fig.add_trace(go.Candlestick(
-                x=df.index,
-                open=df["Open"],
-                high=df["High"],
-                low=df["Low"],
-                close=df["Close"],
-                name="Price",
-                increasing_line_color='green',
-                decreasing_line_color='red'
-            ))
-
-            if "Volume" in df.columns:
-                fig.add_trace(go.Bar(
-                    x=df.index,
-                    y=df["Volume"],
-                    marker_color='rgba(128, 128, 128, 0.3)',
-                    yaxis='y2',
-                    name="Volume"
-                ))
-                fig.update_layout(
-                    yaxis2=dict(
-                        overlaying='y',
-                        side='right',
-                        showgrid=False,
-                        title='Volume'
-                    )
-                )
-
-            fig.update_layout(
-                title=f"{ticker} Candlestick Chart",
-                xaxis_title="Date",
-                yaxis_title="Price",
-                xaxis_rangeslider_visible=False,
-                height=600,
-                margin=dict(l=10, r=10, t=50, b=10),
-                template="plotly_dark"
-            )
-            st.plotly_chart(fig, use_container_width=True)
+            # Create and display chart
+            fig = create_candlestick_chart(df, ticker)
+            st.plotly_chart(fig, use_container_width=True, render_mode="svg")
 
             # 📈 Live Price Display
             live_price = yf.Ticker(ticker).info.get("regularMarketPrice", "N/A")
