@@ -84,7 +84,7 @@ if st.button("Fetch") and ticker:
             st.write(df.tail())
 
             # Create and display chart
-            fig = create_candlestick_chart(df, ticker)
+            fig = stock_chart(df, ticker)
             st.plotly_chart(fig, use_container_width=True, render_mode="svg")
 
             # 📈 Live Price Display
