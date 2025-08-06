@@ -99,24 +99,10 @@ st.subheader(":newspaper: Latest Market News")
 news = fetch_market_news(API_KEY, query=user_input)
 
 if news:
-    with st.container():
-        st.markdown("""
-            <div style='
-                background-color: #1c1c1c;
-                padding: 16px;
-                border-radius: 8px;
-                border: 1px solid #444;
-                max-height: 300px;
-                overflow-y: auto;
-            '>
-        """, unsafe_allow_html=True)
-
-        for article in news[:10]:
-            st.markdown(f"**[{article['title']}]({article['url']})**")
-            st.caption(article["publishedAt"])
-            st.write(article["description"])
-            st.markdown("---")
-
-        st.markdown("</div>", unsafe_allow_html=True)
+    for article in news[:10]:
+        st.markdown(f"**[{article.get('title', '')}]({article.get('url', '#')})**")
+        st.caption(article.get("publishedAt", ""))
+        st.write(article.get("description", ""))
+        st.markdown("---")
 else:
     st.info("No news articles found.")
