@@ -4,11 +4,11 @@ import pandas as pd
 from stock_data import fetch_stock_data
 import requests
 import yfinance as yf
-from rapidfuzz import process, fuzz
 import plotly.io as pio
 import os
 from dotenv import load_dotenv
 from graph_utils import stock_chart
+from StockMatcher import StockMatcher
 
 load_dotenv()
 pio.templates.default = "plotly"  # Use full Plotly styling
@@ -30,6 +30,7 @@ def load_nse_ticker_map():
     return ticker_map
 
 TICKER_MAP = load_nse_ticker_map()
+matcher = StockMatcher(TICKER_MAP)
 
 # ----------------- News Fetcher -----------------
 @st.cache_data(show_spinner=False)
@@ -49,17 +50,10 @@ st.title(":bar_chart: Indian Stock Tracker")
 
 # -------------- User Input & Matching --------------
 user_input = st.text_input("Enter stock name (e.g., Reliance)", "Reliance")
-name_list = list(TICKER_MAP.keys())
-
-def find_best_match(query, choices, threshold=70):
-    match = process.extractOne(query.upper(), choices, scorer=fuzz.WRatio)
-    if match and match[1] >= threshold:
-        return match[0]
-    return None
-
-matched_name = find_best_match(user_input, name_list)
-if matched_name:
-    ticker = TICKER_MAP[matched_name]
+results = matcher.match_stock(user_input, max_results=1)
+if results:
+    matched_name = results[0]['stock']['name']
+    ticker = results[0]['stock']['ticker']
     st.markdown(f"🔍 **Matched**: {matched_name} → **Ticker**: `{ticker}`")
 else:
     st.warning("No matching stock found.")
